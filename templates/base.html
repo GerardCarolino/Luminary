@@ -1,0 +1,90 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Luminary — Premium Photo Album Management" />
+  <title>{% block title %}Luminary{% endblock %} — Luminary</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="{% static 'css/main.css' %}" />
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="{% url 'albums:home' %}" class="navbar-brand">
+        <span class="brand-mark">
+  <img src="{% static 'images/logo.png' %}" alt="Luminary" style="width:20px; height:20px; object-fit:contain;" />
+</span>
+        Luminary
+      </a>
+
+      <nav class="navbar-nav">
+        <a href="{% url 'albums:home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Gallery</a>
+        {% if user.is_authenticated %}
+          <a href="{% url 'albums:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Dashboard</a>
+        {% endif %}
+      </nav>
+
+      <div class="navbar-end">
+        {% if user.is_authenticated %}
+          <a href="{% url 'albums:album_create' %}" class="btn btn-secondary btn-sm">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New Album
+          </a>
+          <a href="{% url 'accounts:profile' %}" class="nav-user-btn">
+            <span class="avatar">{{ user.username|first|upper }}</span>
+            <span>{{ user.username }}</span>
+          </a>
+          <form method="post" action="{% url 'accounts:logout' %}" style="display:inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-ghost btn-sm">Sign out</button>
+          </form>
+        {% else %}
+          <a href="{% url 'accounts:login' %}"    class="btn btn-ghost btn-sm">Sign in</a>
+          <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-sm">Get started</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- Messages -->
+  {% if messages %}
+    <div class="toast-container" id="toast-container">
+      {% for message in messages %}
+        <div class="toast {{ message.tags }}">
+          <span class="toast-dot"></span>
+          <span class="toast-text">{{ message }}</span>
+          <button class="toast-dismiss" aria-label="Dismiss">×</button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Main Content -->
+  <main class="page-main">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <span class="footer-copy">© {% now "Y" %} Luminary. Built with Django &amp; Cloudinary.</span>
+      <nav class="footer-links">
+        <a href="{% url 'albums:home' %}">Gallery</a>
+        {% if user.is_authenticated %}
+          <a href="{% url 'albums:dashboard' %}">Dashboard</a>
+          <a href="/admin/">Admin</a>
+        {% endif %}
+      </nav>
+    </div>
+  </footer>
+
+  <script src="{% static 'js/main.js' %}"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

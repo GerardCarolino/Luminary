@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block title %}{{ album.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <nav class="page-breadcrumb">
+      <a href="{% url 'albums:home' %}" class="breadcrumb-link">Gallery</a>
+      <span class="breadcrumb-sep">›</span>
+      {% if user.is_authenticated %}
+        <a href="{% url 'albums:dashboard' %}" class="breadcrumb-link">Dashboard</a>
+        <span class="breadcrumb-sep">›</span>
+      {% endif %}
+      <span>{{ album.title }}</span>
+    </nav>
+
+    <div class="d-flex items-c justify-between gap-3" style="flex-wrap:wrap">
+      <div>
+        <div class="d-flex items-c gap-2 mb-2" style="margin-bottom:8px">
+          <h1 class="page-title" style="margin-bottom:0">{{ album.title }}</h1>
+          <span class="vis-badge vis-{{ album.visibility }}" style="position:static">{{ album.visibility }}</span>
+        </div>
+        {% if album.description %}
+          <p class="page-subtitle">{{ album.description }}</p>
+        {% endif %}
+        <p class="text-sm text-muted mt-1">
+          By {{ album.owner.username }}
+          · {{ album.photo_count }} photo{{ album.photo_count|pluralize }}
+          · Updated {{ album.updated_at|timesince }} ago
+        </p>
+      </div>
+
+      {% if can_edit %}
+        <div class="d-flex gap-2" style="flex-wrap:wrap">
+          <a href="{% url 'albums:album_edit' album.pk %}" class="btn btn-secondary btn-sm">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Edit
+          </a>
+          <a href="{% url 'albums:album_delete' album.pk %}" class="btn btn-danger btn-sm">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            Delete
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Upload Section -->
+  {% if can_contribute %}
+    <div class="card mb-3" style="margin-bottom:32px">
+      <div class="card-header">
+        <h3 class="card-title">Upload Photos</h3>
+        <span class="text-sm text-muted">JPG, PNG, WEBP · Max 10MB each</span>
+      </div>
+      <div class="card-body">
+        <form
+          method="post"
+          action="{% url 'albums:photo_upload' album.pk %}"
+          enctype="multipart/form-data"
+          id="photo-upload-form"
+        >
+          {% csrf_token %}
+          <div class="form-group" style="margin-bottom:14px">
+            <div class="file-drop">
+              <input type="file" name="image" accept="image/*" multiple required />
+              <span class="file-drop-icon">📷</span>
+              <div class="file-drop-label">Drop photos here or click to browse</div>
+              <div class="file-drop-hint">You can select multiple files at once</div>
+            </div>
+            <div class="upload-bar"><div class="upload-track"><div class="upload-fill"></div></div></div>
+          </div>
+          <div class="d-flex gap-2 items-c" style="flex-wrap:wrap">
+            <input type="text" name="caption" class="form-control" placeholder="Caption (optional)" style="max-width:320px" />
+            <button type="submit" class="btn btn-primary">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Upload
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Photo Grid -->
+  {% if photos %}
+    <div class="section-header">
+      <h2 class="section-title">Photos</h2>
+      <span class="text-sm text-muted">{{ photos.count }} photo{{ photos.count|pluralize }}</span>
+    </div>
+
+    <div class="photo-grid">
+      {% for photo in photos %}
+        <div class="photo-tile" data-href="{% url 'albums:photo_detail' photo.pk %}">
+          <img src="{{ photo.image.url }}" alt="{{ photo.caption|default:'Photo' }}" loading="lazy" />
+          <div class="photo-tile-overlay">
+            {% if photo.caption %}
+              <span class="photo-tile-caption">{{ photo.caption }}</span>
+            {% endif %}
+          </div>
+          <div class="photo-tile-actions">
+            <a href="{% url 'albums:photo_detail' photo.pk %}" class="photo-action-btn" title="View" onclick="event.stopPropagation()">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </a>
+            {% if can_contribute %}
+              {% if can_edit %}
+                <form method="post" action="{% url 'albums:set_cover' photo.pk %}" style="display:contents" onclick="event.stopPropagation()">
+                  {% csrf_token %}
+                  <button type="submit" class="photo-action-btn" title="Set as cover">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  </button>
+                </form>
+              {% endif %}
+              <a href="{% url 'albums:photo_edit' photo.pk %}" class="photo-action-btn" title="Edit" onclick="event.stopPropagation()">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+  {% else %}
+    <div class="empty">
+      <span class="empty-icon">📷</span>
+      <div class="empty-title">No photos yet</div>
+      <p class="empty-desc">{% if can_contribute %}Upload your first photo using the form above.{% else %}This album is empty.{% endif %}</p>
+    </div>
+  {% endif %}
+
+  <!-- Collaborators Panel (admin only) -->
+  {% if can_edit %}
+    <div class="card" style="margin-top:48px">
+      <div class="card-header">
+        <h3 class="card-title">Collaborators</h3>
+        <span class="text-sm text-muted">Manage who can view or contribute</span>
+      </div>
+      <div class="card-body">
+
+        <!-- Current Collaborators -->
+        {% if collaborators %}
+          <div class="collab-list mb-3" style="margin-bottom:20px">
+            {% for c in collaborators %}
+              <div class="collab-row">
+                <div class="avatar">{{ c.user.username|first|upper }}</div>
+                <div class="collab-info">
+                  <div class="collab-name">{{ c.user.username }}</div>
+                  <div class="collab-role-text">{{ c.user.email }}</div>
+                </div>
+                <span class="role-pill {{ c.role }}">{{ c.role }}</span>
+                <form method="post" action="{% url 'albums:collab_remove' album.pk c.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-ghost btn-icon btn-sm" title="Remove"
+                    data-confirm="Remove {{ c.user.username }} from this album?">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
+                </form>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <!-- Add Collaborator -->
+        <form method="post" action="{% url 'albums:collab_add' album.pk %}">
+          {% csrf_token %}
+          <p class="text-sm text-muted mb-2" style="margin-bottom:10px;font-weight:550;color:var(--text-secondary)">Invite a collaborator</p>
+          <div class="d-flex gap-2" style="flex-wrap:wrap">
+            <input type="text" name="username" class="form-control" placeholder="Username" style="max-width:200px" required />
+            <select name="role" class="form-control" style="max-width:160px">
+              <option value="viewer">Viewer</option>
+              <option value="contributor">Contributor</option>
+              <option value="admin">Admin</option>
+            </select>
+            <button type="submit" class="btn btn-secondary">Add</button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

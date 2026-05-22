@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Create Account{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-box">
+
+    <div class="auth-head">
+      <div class="auth-logo">
+        <div class="brand-mark">
+          <img src="{% static 'images/logo.png' %}" alt="Luminary" style="width:20px; height:20px; object-fit:contain;" />
+        </div>
+        Luminary
+      </div>
+      <h1 class="auth-title">Create your account</h1>
+      <p class="auth-subtitle">Free forever. No credit card required.</p>
+    </div>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="danger-zone" style="margin-bottom:20px">
+          {% for error in form.non_field_errors %}
+            <span>{{ error }}</span>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% for field in form %}
+        <div class="form-group">
+          <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% for error in field.errors %}
+            <p class="form-error">{{ error }}</p>
+          {% endfor %}
+        </div>
+      {% endfor %}
+
+      <button type="submit" class="btn btn-primary w-full" style="margin-top:6px">
+        Create account
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      Already have an account?
+      <a href="{% url 'accounts:login' %}">Sign in</a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

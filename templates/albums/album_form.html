@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} Album{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <nav class="page-breadcrumb">
+      <a href="{% url 'albums:dashboard' %}" class="breadcrumb-link">Dashboard</a>
+      <span class="breadcrumb-sep">›</span>
+      {% if object %}
+        <a href="{{ object.get_absolute_url }}" class="breadcrumb-link">{{ object.title }}</a>
+        <span class="breadcrumb-sep">›</span>
+      {% endif %}
+      <span>{{ action }} Album</span>
+    </nav>
+    <h1 class="page-title">{{ action }} Album</h1>
+    <p class="page-subtitle">
+      {% if action == 'Create' %}
+        Start a new collection. You can upload photos after creating the album.
+      {% else %}
+        Update your album details and visibility settings.
+      {% endif %}
+    </p>
+  </div>
+
+  <div style="max-width:560px">
+    <div class="card">
+      <div class="card-body">
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% for field in form %}
+            <div class="form-group">
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% if field.help_text %}
+                <p class="form-hint">{{ field.help_text }}</p>
+              {% endif %}
+              {% for error in field.errors %}
+                <p class="form-error">{{ error }}</p>
+              {% endfor %}
+            </div>
+          {% endfor %}
+
+          <div class="d-flex gap-2 mt-2" style="margin-top:8px">
+            <button type="submit" class="btn btn-primary">
+              {% if action == 'Create' %}
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Create Album
+              {% else %}
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Save Changes
+              {% endif %}
+            </button>
+            {% if object %}
+              <a href="{{ object.get_absolute_url }}" class="btn btn-ghost">Cancel</a>
+            {% else %}
+              <a href="{% url 'albums:dashboard' %}" class="btn btn-ghost">Cancel</a>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Visibility Guide -->
+    <div class="card mt-3" style="margin-top:16px">
+      <div class="card-header">
+        <h4 class="card-title" style="font-size:13px">Visibility Guide</h4>
+      </div>
+      <div class="card-body" style="padding:16px 20px">
+        <div class="d-flex gap-2 mb-2" style="margin-bottom:10px;align-items:flex-start">
+          <span class="badge badge-success" style="margin-top:2px;flex-shrink:0">Public</span>
+          <span class="text-sm text-muted">Listed in the public gallery. Anyone can view.</span>
+        </div>
+        <div class="d-flex gap-2 mb-2" style="margin-bottom:10px;align-items:flex-start">
+          <span class="badge badge-warning" style="margin-top:2px;flex-shrink:0">Unlisted</span>
+          <span class="text-sm text-muted">Not listed in gallery. Anyone with the link can view.</span>
+        </div>
+        <div class="d-flex gap-2" style="align-items:flex-start">
+          <span class="badge badge-danger" style="margin-top:2px;flex-shrink:0">Private</span>
+          <span class="text-sm text-muted">Only you and invited collaborators can view.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
